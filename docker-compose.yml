@@ -1,0 +1,65 @@
+
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:13-alpine
+    container_name: devops_postgres
+    environment:
+      POSTGRES_DB: devops_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend Service
+  backend:
+    build: ./backend
+    container_name: devops_backend
+    environment:
+      DB_HOST: postgres
+      DB_NAME: devops_db
+      DB_USER: postgres
+      DB_PASS: password123
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend Service
+  frontend:
+    build: ./frontend
+    container_name: devops_frontend
+    environment:
+      BACKEND_URL: http://backend:5000/api/data
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Logger Service
+  logger:
+    build: ./logger
+    container_name: devops_logger
+    environment:
+      BACKEND_URL: http://backend:5000
+    volumes:
+      - logger_logs:/app/logs
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  logger_logs:
