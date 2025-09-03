@@ -1,5 +1,3 @@
-
-
 services:
   # PostgreSQL Database
   postgres:
@@ -22,7 +20,7 @@ services:
 
   # Backend Service
   backend:
-    build: ./backend
+    image: mohxmd77/devops-backend:latest
     container_name: devops_backend
     environment:
       DB_HOST: postgres
@@ -38,7 +36,7 @@ services:
 
   # Frontend Service
   frontend:
-    build: ./frontend
+    image: mohxmd77/devops-frontend:latest
     container_name: devops_frontend
     environment:
       BACKEND_URL: http://backend:5000/api/data
@@ -50,7 +48,7 @@ services:
 
   # Logger Service
   logger:
-    build: ./logger
+    image: mohxmd77/devops-logger:latest
     container_name: devops_logger
     environment:
       BACKEND_URL: http://backend:5000
